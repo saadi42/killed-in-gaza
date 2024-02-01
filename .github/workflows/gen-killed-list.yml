@@ -4,6 +4,9 @@ on:
   pull_request:
     branches:
       - '*'
+  push:
+    branches:
+      - main
 
 jobs:
   run_script:
@@ -22,11 +25,17 @@ jobs:
       - name: install python dependencies
         run: pip install -r requirements.txt
 
-      - name: run python script
+      - name: run python script on PR
+        if: github.event_name == 'pull_request'
+        run: |
+          python generate_killed_list.py
+
+      - name: run python script on merge to main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           python generate_killed_list.py
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add .
+          git add output/result.csv
           git commit -m "add result.csv to output folder"
           git push
